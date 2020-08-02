@@ -1,0 +1,227 @@
+ximport pygame as py
+import time
+import random
+
+py.init()
+
+#Graphics
+Disp = py.display.set_mode((800,600))
+DispW = 800
+DispH = 600
+GDisplay = py.display.set_mode((DispW,DispH))
+CarImg = py.image.load('YCar.png')
+
+Block_Color = (195, 195, 195)
+
+car_width = 50
+car_height = 77
+
+# Name of the game (at Window)
+py.display.set_caption('Need For Speed 2D')
+
+# Colors
+B = (0,0,0)
+W = (255,255,255)
+R = (195,0,0)
+BRed = (255,0,0)
+G = (0,195,0)
+Brgreen = (0,255,0)
+Blu = (0,0,195)
+BRblu = (0,0,255)
+
+
+#FramePerSec
+FPS = py.time.Clock()
+
+
+    ###Define Block###
+
+def Obj_Dodged(count):
+    font = py.font.SysFont(None, 40)
+    text = font.render("Dodged: "+str(count), True, B)
+    GDisplay.blit(text,(0,0))
+
+
+def obj(objX, objY, objW, objH, color):
+    py.draw.rect(GDisplay, color, [objX, objY, objW, objH])
+
+def car(x,y):
+    GDisplay.blit(CarImg,(x,y))
+
+def text_objects(text, font):
+    textSurface = font.render(text, True, B)
+    return textSurface, textSurface.get_rect()
+
+def message_display(text):
+    LText = py.font.Font('freesansbold.ttf', 70)
+    TextSurf, TextRect = text_objects(text, LText)
+    TextRect.center = ((400), (300))
+    GDisplay.blit(TextSurf, TextRect)
+
+
+def button(msg,x,y,w,h,ic,ac,action=None):
+    mouse = py.mouse.get_pos()
+    click = py.mouse.get_pressed()
+
+
+    if x+w > mouse[0] > x and y+h > mouse[1] > y:
+        py.draw.rect(GDisplay, ac, (x, y, w, h))
+
+        if click[0] == 1 and action != None:
+            action()
+
+    else:
+        py.draw.rect(GDisplay, ic, (x,y,w,h))
+
+    smallText = py.font.Font("freesansbold.ttf", 15)
+    mediumText = py.font.Font("freesansbold.ttf", 12)
+    TextSurf, TextRect = text_objects(msg, smallText)
+    TextRect.center = ((x+(w/2)), (y+(h/2)))
+    GDisplay.blit(TextSurf, TextRect)
+
+
+
+def intro():
+    pass
+
+
+def game_int():
+    intro = True
+
+    while intro:
+        for event in py.event.get():
+            if event.type == py.QUIT:
+                py.quit()
+                quit()
+        GDisplay.fill(W)
+        LText = py.font.Font('freesansbold.ttf', 45)
+        TextSurf, TextRect = text_objects('Welcome to Need For Speed 2D', LText)
+        TextRect.center = ((395), (300))
+        GDisplay.blit(TextSurf, TextRect)
+
+        button("Take A Ride!", 150, 450, 100, 50, G, Brgreen,game_loop)
+        button("Quit", 550,450,100,50, R, BRed,quit)
+
+        #py.draw.rect(GDisplay, R, (550,450,100,50))
+
+        py.display.update()
+        FPS.tick(6)
+
+def crash():
+    message_display('Do not drink and drive!')
+
+
+    py.display.update()
+
+    time.sleep(2)
+
+    game_loop()
+
+
+
+def game_loop():
+    x = (DispW * 0.45)
+    y = (DispH * 0.85)
+
+    ###Define Block###
+
+    obj_startx = random.randrange(0, DispW)
+    obj_starty = -600
+    obj_speed = 3
+    obj_W = 100
+    obj_H = 100
+
+    objCount = 1
+    dodged = 0
+
+    x_change = 0
+
+
+
+
+
+
+
+    #True when user want exit the game.
+    GExit = False
+    while not GExit:
+
+
+        for event in py.event.get():
+            if event.type == py.QUIT:
+                py.quit()
+                quit()
+
+
+            ###Car Movment
+            if event.type == py.KEYDOWN:
+                if event.key == py.K_LEFT:
+                    x_change = -15
+                elif event.key == py.K_RIGHT:
+                    x_change = 15
+
+
+            if event.type == py.KEYUP:
+                if event.key == py.K_LEFT or event.key == py.K_RIGHT:
+                    x_change = 0
+            ###End Movement
+
+
+
+        ##position our car
+        x += x_change
+        ##
+
+        GDisplay.fill(W)
+#def obj(objX, objY, objW, objH, color):
+
+
+        obj_starty += obj_speed
+        car(x,y)
+        Obj_Dodged(dodged)
+
+
+
+
+        obj(obj_startx, obj_starty, obj_W, obj_H, Block_Color)
+        obj_starty += obj_speed
+        car(x,y)
+
+        if x > DispW - car_width or x < 0:
+            crash()
+
+
+
+        if obj_starty > DispH:
+            obj_starty = 0 - obj_H
+            obj_startx = random.randrange(0, DispW)
+            dodged += 1
+            obj_speed += 0.1
+            obj_W += (dodged * 0.5)
+
+
+
+
+
+
+
+        if obj_starty > DispH:
+            obj_starty = 0 - obj_H
+            obj_startx = random.randrange(0, DispW)
+
+        if y < obj_starty+obj_H:
+            #print('y crossover')
+
+            if x > obj_startx and x < obj_startx + obj_W or x+car_width > obj_startx and x + car_width < obj_startx+obj_W:
+                #print('x crossover')
+                crash()
+
+
+
+        py.display.update()
+        FPS.tick(60)
+
+game_int()
+game_loop()
+py.quit()
+quit()
